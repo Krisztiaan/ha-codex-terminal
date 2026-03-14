@@ -1,0 +1,50 @@
+#!/bin/bash
+# shellcheck shell=bash
+
+set -euo pipefail
+
+WORKDIR="${1:-/homeassistant}"
+if [ ! -d "${WORKDIR}" ]; then
+    WORKDIR="/config"
+fi
+
+if ! cd "${WORKDIR}" 2>/dev/null; then
+    cd || true
+fi
+
+# Persist shell history across reconnects/restarts
+HISTFILE="/data/.codex_bash_history"
+export HISTFILE
+touch "${HISTFILE}"
+chmod 600 "${HISTFILE}"
+
+# Prevent persistent history from growing without bound (keeps backups lean).
+HIST_MAX_LINES="${CODEX_BASH_HISTORY_MAX_LINES:-20000}"
+if [ -f "${HISTFILE}" ]; then
+    HIST_LINES="$(wc -l < "${HISTFILE}" 2>/dev/null || echo 0)"
+    if [ "${HIST_LINES}" -gt "${HIST_MAX_LINES}" ]; then
+        tmp_hist="$(mktemp)"
+        tail -n "${HIST_MAX_LINES}" "${HISTFILE}" > "${tmp_hist}" || true
+        mv "${tmp_hist}" "${HISTFILE}"
+        chmod 600 "${HISTFILE}"
+    fi
+fi
+export HISTSIZE="${HIST_MAX_LINES}"
+export HISTFILESIZE="${HIST_MAX_LINES}"
+
+# Keep all tool caches off persistent storage so backups stay small
+export NPM_CONFIG_CACHE="/tmp/.npm"
+export XDG_CACHE_HOME="/tmp/.cache"
+mkdir -p "$NPM_CONFIG_CACHE" "$XDG_CACHE_HOME"
+
+# Show installed Codex version and hint if newer exists
+CURRENT_VER="$(codex --version 2>/dev/null || echo unknown)"
+LATEST_VER="$(timeout 5 npm view @openai/codex version 2>/dev/null || echo unknown)"
+if [ "${CURRENT_VER}" != "unknown" ]; then
+    echo "Codex installed version: ${CURRENT_VER}"
+fi
+if [ "${LATEST_VER}" != "unknown" ] && [ "${CURRENT_VER}" != "unknown" ] && [ "${CURRENT_VER}" != "${LATEST_VER}" ]; then
+    echo "A newer Codex is available (${LATEST_VER}); rebuild the add-on to update."
+fi
+
+exec bash --login

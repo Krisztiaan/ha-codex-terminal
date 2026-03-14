@@ -1,0 +1,98 @@
+#!/command/with-contenv bashio
+set -euo pipefail
+
+DATA_DIR="/data"
+PERSIST_CODEX_DIR="${DATA_DIR}/codex_home"
+CODEX_DIR="/root/.codex"
+
+mkdir -p "${DATA_DIR}" "${PERSIST_CODEX_DIR}"
+
+if [ ! -L "${CODEX_DIR}" ]; then
+    rm -rf "${CODEX_DIR}"
+    ln -s "${PERSIST_CODEX_DIR}" "${CODEX_DIR}"
+fi
+
+sync_option_file() {
+    local option="$1"
+    local filename="$2"
+    local mode="$3"
+    local value
+
+    value="$(bashio::config "${option}")"
+    if bashio::var.has_value "${value}"; then
+        local tmp_file
+        tmp_file="$(mktemp)"
+        printf '%s' "${value}" > "${tmp_file}"
+        mv "${tmp_file}" "${DATA_DIR}/${filename}"
+        chmod "${mode}" "${DATA_DIR}/${filename}"
+        bashio::log.info "Updated ${filename} from ${option} option."
+    else
+        # Blank options should not delete persisted files. This allows
+        # Codex to keep login state across restarts/rebuilds unless the
+        # user explicitly removes the file from /data.
+        :
+    fi
+
+    if [ -f "${DATA_DIR}/${filename}" ]; then
+        ln -sf "${DATA_DIR}/${filename}" "${CODEX_DIR}/${filename}"
+    else
+        rm -f "${CODEX_DIR}/${filename}"
+    fi
+}
+
+sync_option_file "auth_json" "auth.json" 600
+sync_option_file "config_toml" "config.toml" 600
+sync_option_file "agents_md" "AGENTS.md" 600
+
+DEFAULT_AGENTS_TEMPLATE="/etc/codex/AGENTS.md"
+DEFAULT_CONFIG_TEMPLATE="/etc/codex/config.toml"
+
+if ! bashio::var.has_value "$(bashio::config 'agents_md')" \
+    && [ -f "${DEFAULT_AGENTS_TEMPLATE}" ] \
+    && [ ! -f "${DATA_DIR}/AGENTS.md" ]; then
+    cp "${DEFAULT_AGENTS_TEMPLATE}" "${DATA_DIR}/AGENTS.md"
+    chmod 600 "${DATA_DIR}/AGENTS.md"
+    ln -sf "${DATA_DIR}/AGENTS.md" "${CODEX_DIR}/AGENTS.md"
+    bashio::log.info "Prefilled AGENTS.md with default guidance."
+fi
+
+if ! bashio::var.has_value "$(bashio::config 'config_toml')" \
+    && [ -f "${DEFAULT_CONFIG_TEMPLATE}" ] \
+    && [ ! -f "${DATA_DIR}/config.toml" ]; then
+    cp "${DEFAULT_CONFIG_TEMPLATE}" "${DATA_DIR}/config.toml"
+    chmod 600 "${DATA_DIR}/config.toml"
+    ln -sf "${DATA_DIR}/config.toml" "${CODEX_DIR}/config.toml"
+    bashio::log.info "Prefilled config.toml with recommended defaults."
+fi
+
+# Bound persistent Codex artifacts so backups don't grow without limit.
+LOG_MAX_MB="$(bashio::config 'codex_log_max_mb' 2>/dev/null || echo '')"
+SESSIONS_RETENTION_DAYS="$(bashio::config 'codex_sessions_retention_days' 2>/dev/null || echo '')"
+
+if [ -n "${LOG_MAX_MB}" ] && [ "${LOG_MAX_MB}" -gt 0 ] 2>/dev/null; then
+    LOG_FILE="${PERSIST_CODEX_DIR}/log/codex-tui.log"
+    if [ -f "${LOG_FILE}" ]; then
+        MAX_BYTES="$((LOG_MAX_MB * 1024 * 1024))"
+        CUR_BYTES="$(wc -c < "${LOG_FILE}" 2>/dev/null || echo 0)"
+        if [ "${CUR_BYTES}" -gt "${MAX_BYTES}" ] 2>/dev/null; then
+            tmp_file="$(mktemp)"
+            tail -c "${MAX_BYTES}" "${LOG_FILE}" > "${tmp_file}" || true
+            mv "${tmp_file}" "${LOG_FILE}"
+            chmod 600 "${LOG_FILE}" 2>/dev/null || true
+            bashio::log.info "Trimmed codex-tui.log to ~${LOG_MAX_MB}MB."
+        fi
+    fi
+fi
+
+if [ -n "${SESSIONS_RETENTION_DAYS}" ] && [ "${SESSIONS_RETENTION_DAYS}" -gt 0 ] 2>/dev/null; then
+    SESS_DIR="${PERSIST_CODEX_DIR}/sessions"
+    if [ -d "${SESS_DIR}" ]; then
+        find "${SESS_DIR}" -type f -name '*.jsonl' -mtime "+${SESSIONS_RETENTION_DAYS}" -delete 2>/dev/null || true
+        find "${SESS_DIR}" -type d -empty -delete 2>/dev/null || true
+    fi
+fi
+
+# Keep tool caches ephemeral so backups stay lean (Codex CLI itself is installed in the image).
+mkdir -p /tmp/.npm /tmp/.cache
+printf '%s' "/tmp/.npm" > /run/s6/container_environment/NPM_CONFIG_CACHE
+printf '%s' "/tmp/.cache" > /run/s6/container_environment/XDG_CACHE_HOME

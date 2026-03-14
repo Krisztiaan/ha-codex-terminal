@@ -1,0 +1,45 @@
+name: "HA Codex Terminal"
+version: "0.1.0"
+slug: ha-codex-terminal
+description: >
+  ttyd + tmux workspace that launches the latest OpenAI Codex CLI with full Home Assistant access.
+url: "https://github.com/Krisztiaan/ha-codex-terminal"
+arch:
+  - amd64
+  - aarch64
+startup: services
+boot: auto
+init: false
+ingress: true
+ingress_port: 7681
+ingress_entry: /
+panel_icon: mdi:console
+panel_title: Codex
+homeassistant_api: true
+hassio_api: true
+auth_api: true
+hassio_role: manager
+stdin: true
+full_access: true
+apparmor: false
+map:
+  - type: addon_config
+    read_only: false
+  - type: homeassistant_config
+    read_only: false
+  - type: share
+    read_only: false
+  - type: ssl
+  - type: addons
+options:
+  auth_json: ""
+  config_toml: ""
+  agents_md: ""
+  codex_log_max_mb: 10
+  codex_sessions_retention_days: 90
+schema:
+  auth_json: str?
+  config_toml: str?
+  agents_md: str?
+  codex_log_max_mb: int(0, 1024)?
+  codex_sessions_retention_days: int(0, 3650)?

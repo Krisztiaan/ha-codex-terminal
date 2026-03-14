@@ -1,0 +1,47 @@
+#!/bin/bash
+# shellcheck shell=bash
+
+set -euo pipefail
+
+export HOME="/root"
+# Keep npm caches ephemeral so backups don't grow; callers can
+# override NPM_CONFIG_CACHE explicitly if they really need persistence.
+export NPM_CONFIG_CACHE="${NPM_CONFIG_CACHE:-/tmp/.npm}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/tmp/.cache}"
+
+DATA_DIR="/data"
+CODEX_DIR="${HOME}/.codex"
+WORKDIR="/homeassistant"
+if [ ! -d "${WORKDIR}" ]; then
+    WORKDIR="/config"
+fi
+
+mkdir -p "${CODEX_DIR}" "${NPM_CONFIG_CACHE}" "${XDG_CACHE_HOME}"
+
+for file in "auth.json" "config.toml" "AGENTS.md"; do
+    if [ -f "${DATA_DIR}/${file}" ]; then
+        ln -sf "${DATA_DIR}/${file}" "${CODEX_DIR}/${file}"
+    else
+        rm -f "${CODEX_DIR}/${file}"
+    fi
+done
+
+SESSION="codex"
+
+TOKEN_FILE="/run/s6/container_environment/SUPERVISOR_TOKEN"
+SUP_TOKEN=""
+if [ -f "${TOKEN_FILE}" ]; then
+    SUP_TOKEN="$(cat "${TOKEN_FILE}")"
+fi
+
+tmux start-server
+if [ -n "${SUP_TOKEN}" ]; then
+    tmux set-environment -g SUPERVISOR_TOKEN "${SUP_TOKEN}" 2>/dev/null || true
+fi
+
+if ! tmux has-session -t "${SESSION}" 2>/dev/null; then
+    tmux new-session -d -s "${SESSION}" /usr/local/bin/start-codex-session "${WORKDIR}" || true
+    tmux set-option -t "${SESSION}" remain-on-exit on || true
+fi
+
+exec tmux attach -t "${SESSION}"

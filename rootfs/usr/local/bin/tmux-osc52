@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+buf="$(cat)"
+if [ -z "${buf}" ]; then
+    exit 0
+fi
+# Base64 encode without newlines
+encoded="$(printf '%s' "${buf}" | base64 | tr -d '\n')"
+printf '\033]52;c;%s\033\\' "${encoded}"

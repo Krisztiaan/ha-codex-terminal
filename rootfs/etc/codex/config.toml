@@ -1,0 +1,22 @@
+# Default configuration for Codex CLI inside the Home Assistant Codex Terminal add-on.
+
+model = "gpt-5-codex"
+approval_policy = "on-request"
+sandbox_mode = "danger-full-access"  # we already run inside a privileged container
+
+[features]
+web_search_request = true  # enable first-party search tool
+view_image_tool = false    # keep image uploads disabled by default
+
+[shell_environment_policy]
+inherit = "all"
+ignore_default_excludes = false
+exclude = [
+  "AWS_*",
+  "AZURE_*",
+  "GITHUB_*",
+  "GOOGLE_*",
+  "NPM_TOKEN",
+  "SLACK_*",
+  "STRIPE_*",
+]

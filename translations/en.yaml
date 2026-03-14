@@ -1,0 +1,10 @@
+configuration:
+  auth_json:
+    name: Codex auth.json
+    description: Legacy one-time import of ~/.codex/auth.json. Prefer the Web UI Auth.json action so credentials are not stored in add-on options.
+  config_toml:
+    name: Codex config.toml
+    description: Optional settings file (~/.codex/config.toml).
+  agents_md:
+    name: Codex AGENTS.md
+    description: Optional persistent memory file (~/.codex/AGENTS.md).
