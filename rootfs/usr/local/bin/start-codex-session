@@ -31,11 +31,52 @@ if [ -f "${HISTFILE}" ]; then
 fi
 export HISTSIZE="${HIST_MAX_LINES}"
 export HISTFILESIZE="${HIST_MAX_LINES}"
+HIST_MAX_BYTES="${CODEX_BASH_HISTORY_MAX_BYTES:-1048576}"
+if [ -f "${HISTFILE}" ]; then
+    HIST_BYTES="$(wc -c < "${HISTFILE}" 2>/dev/null || echo 0)"
+    if [ "${HIST_BYTES}" -gt "${HIST_MAX_BYTES}" ]; then
+        tmp_hist="$(mktemp)"
+        tail -c "${HIST_MAX_BYTES}" "${HISTFILE}" > "${tmp_hist}" || true
+        mv "${tmp_hist}" "${HISTFILE}"
+        chmod 600 "${HISTFILE}"
+    fi
+fi
 
 # Keep all tool caches off persistent storage so backups stay small
 export NPM_CONFIG_CACHE="/tmp/.npm"
 export XDG_CACHE_HOME="/tmp/.cache"
-mkdir -p "$NPM_CONFIG_CACHE" "$XDG_CACHE_HOME"
+export PIP_CACHE_DIR="/tmp/.cache/pip"
+export PYTHONPYCACHEPREFIX="/tmp/.cache/pycache"
+export PYTHONUSERBASE="/tmp/.local"
+export PIPX_HOME="/tmp/.local/pipx"
+export PIPX_BIN_DIR="/tmp/.local/bin"
+export YARN_CACHE_FOLDER="/tmp/.cache/yarn"
+export COREPACK_HOME="/tmp/.cache/corepack"
+export PNPM_HOME="/tmp/.local/share/pnpm"
+export PNPM_STORE_DIR="/tmp/.local/share/pnpm/store"
+export NPM_CONFIG_PREFIX="/tmp/.npm-global"
+export TMPDIR="/tmp"
+mkdir -p \
+    "$NPM_CONFIG_CACHE" \
+    "$XDG_CACHE_HOME" \
+    "$PIP_CACHE_DIR" \
+    "$PYTHONPYCACHEPREFIX" \
+    "$PYTHONUSERBASE" \
+    "$PIPX_HOME" \
+    "$PIPX_BIN_DIR" \
+    "$YARN_CACHE_FOLDER" \
+    "$COREPACK_HOME" \
+    "$PNPM_HOME" \
+    "$PNPM_STORE_DIR" \
+    "$NPM_CONFIG_PREFIX/bin"
+case ":$PATH:" in
+    *":$PIPX_BIN_DIR:"*) ;;
+    *) export PATH="$PIPX_BIN_DIR:$PATH" ;;
+esac
+case ":$PATH:" in
+    *":$NPM_CONFIG_PREFIX/bin:"*) ;;
+    *) export PATH="$NPM_CONFIG_PREFIX/bin:$PATH" ;;
+esac
 
 # Show installed Codex version and hint if newer exists
 CURRENT_VER="$(codex --version 2>/dev/null || echo unknown)"

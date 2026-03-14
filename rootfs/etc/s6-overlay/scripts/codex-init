@@ -93,6 +93,26 @@ if [ -n "${SESSIONS_RETENTION_DAYS}" ] && [ "${SESSIONS_RETENTION_DAYS}" -gt 0 ]
 fi
 
 # Keep tool caches ephemeral so backups stay lean (Codex CLI itself is installed in the image).
-mkdir -p /tmp/.npm /tmp/.cache
+mkdir -p \
+    /tmp/.npm \
+    /tmp/.npm-global/bin \
+    /tmp/.cache/pip \
+    /tmp/.cache/yarn \
+    /tmp/.cache/corepack \
+    /tmp/.cache/pycache \
+    /tmp/.local/bin \
+    /tmp/.local/pipx \
+    /tmp/.local/share/pnpm/store
 printf '%s' "/tmp/.npm" > /run/s6/container_environment/NPM_CONFIG_CACHE
 printf '%s' "/tmp/.cache" > /run/s6/container_environment/XDG_CACHE_HOME
+printf '%s' "/tmp/.cache/pip" > /run/s6/container_environment/PIP_CACHE_DIR
+printf '%s' "/tmp/.cache/pycache" > /run/s6/container_environment/PYTHONPYCACHEPREFIX
+printf '%s' "/tmp/.local" > /run/s6/container_environment/PYTHONUSERBASE
+printf '%s' "/tmp/.local/pipx" > /run/s6/container_environment/PIPX_HOME
+printf '%s' "/tmp/.local/bin" > /run/s6/container_environment/PIPX_BIN_DIR
+printf '%s' "/tmp/.cache/yarn" > /run/s6/container_environment/YARN_CACHE_FOLDER
+printf '%s' "/tmp/.cache/corepack" > /run/s6/container_environment/COREPACK_HOME
+printf '%s' "/tmp/.local/share/pnpm" > /run/s6/container_environment/PNPM_HOME
+printf '%s' "/tmp/.local/share/pnpm/store" > /run/s6/container_environment/PNPM_STORE_DIR
+printf '%s' "/tmp/.npm-global" > /run/s6/container_environment/NPM_CONFIG_PREFIX
+printf '%s' "/tmp" > /run/s6/container_environment/TMPDIR

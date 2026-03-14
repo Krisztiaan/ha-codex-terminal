@@ -13,6 +13,7 @@ Launch a ttyd-powered web console inside Home Assistant that connects straight i
 - Seeds Codex with a tuned `config.toml` (on-request approvals, `danger-full-access` sandbox, web search enabled) tailored to this add-on.
 - Keeps a dedicated tmux session running even when ingress is closed so Codex continues working between browser attaches. Shell history is stored at `/data/.codex_bash_history` (capped), and an alias (`codex`) is available for quickly launching new Codex instances in extra panes.
 - Full access to Home Assistant configuration plus mapped share, SSL, and add-ons paths.
+- Redirects common package-manager/tool caches (`npm`, `pip`, `yarn`, `pnpm`, Python bytecode, Corepack) into `/tmp` so add-on backups stay small by default.
 
 ## Configuration
 
@@ -37,6 +38,8 @@ If `agents_md` is blank, the add-on seeds `/data/AGENTS.md` with a concise envir
 
 Changes are written on add-on start (and after saving options) with `chmod 600` permissions, then symlinked into `/root/.codex/` for the Codex CLI. Use the Web UI `Auth.json` action to upload or remove credentials without sending them through the terminal.
 
+The add-on also excludes volatile runtime artifacts from add-on backups, including Codex logs/sessions, shell history, common cache folders, `node_modules`, virtualenvs, and Python bytecode under the add-on's own backed-up paths.
+
 ## Usage
 
 1. Install the add-on from this repository.
@@ -50,16 +53,17 @@ Changes are written on add-on start (and after saving options) with `chmod 600` 
 - Use standard tmux shortcuts (`Ctrl+b d` to detach, `Ctrl+b c` to create a window) if you want to keep additional shells running.
 - On iOS Companion, use the toolbar soft keys (`Tab`, `Tmux`, `Copy`, `Paste`, `KB`, `Scroll`). Scroll mode is remembered per-browser via localStorage.
 
-Codex is preinstalled globally during image build, and each session launches the pinned CLI directly. NPM/XDG caches default to `/tmp` (`/tmp/.npm`, `/tmp/.cache`), keeping snapshots lean.
+Codex is preinstalled globally during image build, and each session launches the pinned CLI directly. Tool caches default to `/tmp` (`/tmp/.npm`, `/tmp/.cache`, `/tmp/.local`, `/tmp/.npm-global`), keeping snapshots lean.
 
 ## Security & Permissions
 
 - `full_access: true` gives the container unrestricted filesystem and device access; `hassio_role: manager` still gives broad Supervisor control. Treat this add-on as fully trusted code.
 - Prefer the Web UI `Auth.json` upload/remove flow over the legacy `auth_json` option so credentials are not stored in the Supervisor options database.
+- If you need scratch installs, clones, or virtualenvs for one-off work, put them under `/tmp`; that content is intentionally not part of add-on backups.
 - Network access to `registry.npmjs.org` and OpenAI endpoints is required for Codex to function.
 
 ## Troubleshooting
 
 - If ingress shows an empty page, refresh after several seconds — the tmux session is still booting.
 - Should npm fail (offline, rate limited), the tmux session falls back to a bash shell so you can inspect logs under `/data`.
-- If you manually set a persistent `NPM_CONFIG_CACHE`, remember to clear it yourself if the cache becomes corrupted; the default ephemeral cache in `/tmp` is recreated automatically on each start.
+- If you manually override the default cache locations away from `/tmp`, that data can end up in backups; the shipped defaults are chosen specifically to avoid that.

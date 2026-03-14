@@ -77,6 +77,7 @@ RUN chmod +x \
     /usr/local/bin/codex-ingress-gate.mjs \
     /usr/local/bin/start-codex-session \
     /usr/local/bin/tmux-osc52 \
+    /etc/profile.d/tool-cache-env.sh \
     /etc/s6-overlay/scripts/codex-init \
     /etc/s6-overlay/s6-rc.d/codex/run
 

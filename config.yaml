@@ -22,6 +22,28 @@ hassio_role: manager
 stdin: true
 full_access: true
 apparmor: false
+backup_exclude:
+  - "*/codex_home/log"
+  - "*/codex_home/log/*"
+  - "*/codex_home/sessions"
+  - "*/codex_home/sessions/*"
+  - "*/.codex_bash_history"
+  - "*/.npm"
+  - "*/.npm/*"
+  - "*/.cache"
+  - "*/.cache/*"
+  - "*/.yarn"
+  - "*/.yarn/*"
+  - "*/.pnpm-store"
+  - "*/.pnpm-store/*"
+  - "*/node_modules"
+  - "*/node_modules/*"
+  - "*/__pycache__"
+  - "*/__pycache__/*"
+  - "*/.venv"
+  - "*/.venv/*"
+  - "*/venv"
+  - "*/venv/*"
 map:
   - type: addon_config
     read_only: false

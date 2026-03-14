@@ -32,5 +32,6 @@ You are Codex running inside a Home Assistant Supervisor add-on (`ha-codex-termi
 - `rsync`, `rclone`, or `sshpass` when you need to shuttle files to other hosts quickly.
 - `curl -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" http://supervisor/core/api/...` for HA API calls.
 - Prefer `/tmp` for caches/build artifacts; keep `/data` for small, intentional state you want to survive restarts and potentially be included in backups.
-- The `codex` alias runs the baked Codex CLI; npm/XDG caches go to `/tmp` so backups stay small; shell history persists (capped) at `/data/.codex_bash_history`.
+- The `codex` alias runs the baked Codex CLI; common package-manager caches and user-install prefixes go to `/tmp` so backups stay small; shell history persists (capped) at `/data/.codex_bash_history`.
+- Do not create `node_modules`, virtualenvs, or other bulky scratch artifacts under `/data` or `/config`; use `/tmp` for ephemeral workspaces.
 - Append to `/root/.codex/AGENTS.md` via the add-on options UI to share new findings or playbooks with future sessions.
