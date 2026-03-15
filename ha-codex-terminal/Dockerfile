@@ -61,7 +61,7 @@ RUN npm install -g @openai/codex@${CODEX_VERSION} bash-language-server@${BASH_LA
 
 RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | env UV_UNMANAGED_INSTALL="/usr/local/bin" sh \
     && UV_PYTHON_INSTALL_DIR=/opt/uv-python uv python install ${HOMEASSISTANT_RUNTIME_PYTHON} \
-    && UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON_PREFERENCE=only-managed uv venv --python ${HOMEASSISTANT_RUNTIME_PYTHON} /opt/ha-python \
+    && UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON_PREFERENCE=only-managed uv venv --seed --python ${HOMEASSISTANT_RUNTIME_PYTHON} /opt/ha-python \
     && /opt/ha-python/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
     && /opt/ha-python/bin/python -m pip install --no-cache-dir homeassistant==${HOMEASSISTANT_PYTHON_VERSION}
 
