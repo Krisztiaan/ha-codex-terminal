@@ -59,7 +59,7 @@ ENV NPM_CONFIG_CACHE=/tmp/.npm \
 RUN npm install -g @openai/codex@${CODEX_VERSION} bash-language-server@${BASH_LANGUAGE_SERVER_VERSION} \
     && npm cache clean --force || true
 
-RUN python3 -m pip install --no-cache-dir --upgrade uv==${UV_VERSION} \
+RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | env UV_UNMANAGED_INSTALL="/usr/local/bin" sh \
     && UV_PYTHON_INSTALL_DIR=/opt/uv-python uv python install ${HOMEASSISTANT_RUNTIME_PYTHON} \
     && UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON_PREFERENCE=only-managed uv venv --python ${HOMEASSISTANT_RUNTIME_PYTHON} /opt/ha-python \
     && /opt/ha-python/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
