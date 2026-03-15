@@ -63,5 +63,5 @@ schema:
   auth_json: str?
   config_toml: str?
   agents_md: str?
-  codex_log_max_mb: int(0, 1024)?
-  codex_sessions_retention_days: int(0, 3650)?
+  codex_log_max_mb: int(0,1024)?
+  codex_sessions_retention_days: int(0,3650)?
