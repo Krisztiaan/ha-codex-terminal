@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /opt/ha-python/bin/hass "$@"
+exec /opt/ha-python/bin/python -m homeassistant "$@"

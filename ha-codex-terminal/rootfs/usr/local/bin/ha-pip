@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /opt/ha-python/bin/pip "$@"
+exec /opt/ha-python/bin/python -m pip "$@"

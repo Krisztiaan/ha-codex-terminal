@@ -8,7 +8,9 @@ ARG TTYD_VERSION=1.7.7
 ARG CLI_VERSION=4.46.0
 ARG CODEX_VERSION=0.114.0
 ARG BASH_LANGUAGE_SERVER_VERSION=5.6.0
+ARG UV_VERSION=0.10.10
 ARG HOMEASSISTANT_PYTHON_VERSION=2026.3.1
+ARG HOMEASSISTANT_RUNTIME_PYTHON=3.14.2
 
 RUN apk add --no-cache \
     bash \
@@ -57,9 +59,11 @@ ENV NPM_CONFIG_CACHE=/tmp/.npm \
 RUN npm install -g @openai/codex@${CODEX_VERSION} bash-language-server@${BASH_LANGUAGE_SERVER_VERSION} \
     && npm cache clean --force || true
 
-RUN python3 -m venv /opt/ha-python \
-    && /opt/ha-python/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && /opt/ha-python/bin/pip install --no-cache-dir homeassistant==${HOMEASSISTANT_PYTHON_VERSION}
+RUN python3 -m pip install --no-cache-dir --upgrade uv==${UV_VERSION} \
+    && UV_PYTHON_INSTALL_DIR=/opt/uv-python uv python install ${HOMEASSISTANT_RUNTIME_PYTHON} \
+    && UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON_PREFERENCE=only-managed uv venv --python ${HOMEASSISTANT_RUNTIME_PYTHON} /opt/ha-python \
+    && /opt/ha-python/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && /opt/ha-python/bin/python -m pip install --no-cache-dir homeassistant==${HOMEASSISTANT_PYTHON_VERSION}
 
 RUN set -e \
     && case "$BUILD_ARCH" in \
