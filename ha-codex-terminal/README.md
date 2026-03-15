@@ -12,11 +12,14 @@ If the badges do not open Home Assistant directly, add this custom repository ma
 
 `https://github.com/Krisztiaan/ha-codex-terminal`
 
-## Repository Layout
+## What It Does
 
-- `repository.yaml` stays at repo root for Home Assistant.
-- The actual add-on lives in [`ha-codex-terminal/`](./ha-codex-terminal).
+- Opens a Home Assistant ingress terminal for Codex.
+- Keeps a long-lived `tmux` session so work survives browser reconnects.
+- Ships common CLI tooling for Home Assistant maintenance and debugging.
+- Includes helper commands for Home Assistant Core API, Supervisor API, and read-only recorder access.
+- Keeps common package-manager caches in `/tmp` and excludes volatile data from add-on backups.
 
 ## Docs
 
-See [`ha-codex-terminal/README.md`](./ha-codex-terminal/README.md) for install and usage details, and [`ha-codex-terminal/DOCS.md`](./ha-codex-terminal/DOCS.md) for configuration and operational notes.
+See [DOCS.md](./DOCS.md) for configuration, permissions, and operational notes.
