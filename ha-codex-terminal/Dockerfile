@@ -5,8 +5,9 @@ ENV LANG=C.UTF-8
 
 ARG BUILD_ARCH
 ARG TTYD_VERSION=1.7.7
-ARG CLI_VERSION=4.34.0
-ARG CODEX_VERSION=latest
+ARG CLI_VERSION=4.46.0
+ARG CODEX_VERSION=0.114.0
+ARG BASH_LANGUAGE_SERVER_VERSION=5.6.0
 
 RUN apk add --no-cache \
     bash \
@@ -52,7 +53,7 @@ RUN apk add --no-cache \
 ENV NPM_CONFIG_CACHE=/tmp/.npm \
     XDG_CACHE_HOME=/tmp/.cache
 
-RUN npm install -g @openai/codex@${CODEX_VERSION} bash-language-server \
+RUN npm install -g @openai/codex@${CODEX_VERSION} bash-language-server@${BASH_LANGUAGE_SERVER_VERSION} \
     && npm cache clean --force || true
 
 RUN set -e \

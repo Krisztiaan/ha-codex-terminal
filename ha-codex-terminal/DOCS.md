@@ -6,7 +6,7 @@ Launch a ttyd-powered web console inside Home Assistant that connects straight i
 
 ## Features
 
-- Runs the Codex CLI baked into the image (by default built with `@openai/codex@latest`); rebuild the add-on to update.
+- Runs the Codex CLI baked into the image (currently `@openai/codex@0.114.0`); update the build args and rebuild the add-on to move forward.
 - Persists Codex auth/config (`auth.json`, `config.toml`, `AGENTS.md`) in `/data`. `config.toml` and `AGENTS.md` can be managed through the add-on options UI; `auth.json` can also be uploaded safely from the Web UI.
 - Ships useful command-line tooling (`yq`, `rg`, `fd`, `fzf`, `tmux`, `git`, `python3`, etc.) for automated workflows.
 - Bundles the Home Assistant CLI (`ha`) so the agent can call supervisor/system commands directly.
@@ -63,7 +63,7 @@ Useful helper commands:
 
 These helpers are optional conveniences. The raw `ha` CLI and direct client tools remain available.
 
-Codex is preinstalled globally during image build, and each session launches the pinned CLI directly. Tool caches default to `/tmp` (`/tmp/.npm`, `/tmp/.cache`, `/tmp/.local`, `/tmp/.npm-global`), keeping snapshots lean.
+Codex is preinstalled globally during image build, and each session launches the pinned CLI directly. The image currently pins `@openai/codex@0.114.0`, `bash-language-server@5.6.0`, `ttyd 1.7.7`, and Home Assistant CLI `4.46.0`. Tool caches default to `/tmp` (`/tmp/.npm`, `/tmp/.cache`, `/tmp/.local`, `/tmp/.npm-global`), keeping snapshots lean.
 
 ## Security & Permissions
 

@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Pin bundled tool versions to current upstream releases as of 2026-03-15 (`@openai/codex 0.114.0`, Home Assistant CLI `4.46.0`, `bash-language-server 5.6.0`).
 - Add helper CLIs for Home Assistant Core API, Supervisor API, and read-only recorder inspection.
 - Improve repository presentation with README install badges, icon, logo, and changelog.
 - Add GitHub Actions validation for YAML, shell scripts, and Home Assistant add-on test builds.
