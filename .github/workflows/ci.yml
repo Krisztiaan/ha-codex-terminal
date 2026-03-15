@@ -55,4 +55,6 @@ jobs:
             --target /data/ha-codex-terminal \
             --amd64 \
             --aarch64 \
-            --test
+            --test \
+            -i local/{arch}-ha-codex-terminal \
+            -d local
