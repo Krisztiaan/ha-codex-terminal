@@ -53,5 +53,6 @@ jobs:
         with:
           args: |
             --target /data \
-            --all \
+            --amd64 \
+            --aarch64 \
             --test
