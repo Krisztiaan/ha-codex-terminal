@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add a dedicated Home Assistant Python environment with `ha-python`, `ha-pip`, and `hass` helpers, pinned to `homeassistant==2026.3.1`.
 - Pin bundled tool versions to current upstream releases as of 2026-03-15 (`@openai/codex 0.114.0`, Home Assistant CLI `4.46.0`, `bash-language-server 5.6.0`).
 - Add helper CLIs for Home Assistant Core API, Supervisor API, and read-only recorder inspection.
 - Improve repository presentation with README install badges, icon, logo, and changelog.

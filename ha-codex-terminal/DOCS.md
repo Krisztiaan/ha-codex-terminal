@@ -10,6 +10,7 @@ Launch a ttyd-powered web console inside Home Assistant that connects straight i
 - Persists Codex auth/config (`auth.json`, `config.toml`, `AGENTS.md`) in `/data`. `config.toml` and `AGENTS.md` can be managed through the add-on options UI; `auth.json` can also be uploaded safely from the Web UI.
 - Ships useful command-line tooling (`yq`, `rg`, `fd`, `fzf`, `tmux`, `git`, `python3`, etc.) for automated workflows.
 - Bundles the Home Assistant CLI (`ha`) so the agent can call supervisor/system commands directly.
+- Bundles a dedicated Home Assistant Python environment (`ha-python`, `ha-pip`, `hass`) pinned to `homeassistant==2026.3.1`, which brings in the matching Home Assistant dependency stack (`aiohttp`, `httpx`, `SQLAlchemy`, `PyYAML`, `Jinja2`, `websockets`, etc.).
 - Adds helper CLIs for Home Assistant/Supervisor APIs and read-only recorder inspection (`ha-api`, `supervisor-api`, `ha-sqlite-ro`, `ha-recorder-schema`).
 - Seeds Codex with a tuned `config.toml` (on-request approvals, `danger-full-access` sandbox, web search enabled) tailored to this add-on.
 - Keeps a dedicated tmux session running even when ingress is closed so Codex continues working between browser attaches. Shell history is stored at `/data/.codex_bash_history` (capped), and an alias (`codex`) is available for quickly launching new Codex instances in extra panes.
@@ -60,10 +61,12 @@ Useful helper commands:
 - `supervisor-api /addons` queries the Supervisor API directly.
 - `ha-sqlite-ro 'select count(*) from states;'` opens the recorder DB read-only.
 - `ha-recorder-schema` prints the recorder schema.
+- `ha-python -c 'import homeassistant; print(homeassistant.__version__)'` runs against the bundled Home Assistant Python environment.
+- `hass --script check_config -c /homeassistant` validates your Home Assistant configuration.
 
 These helpers are optional conveniences. The raw `ha` CLI and direct client tools remain available.
 
-Codex is preinstalled globally during image build, and each session launches the pinned CLI directly. The image currently pins `@openai/codex@0.114.0`, `bash-language-server@5.6.0`, `ttyd 1.7.7`, and Home Assistant CLI `4.46.0`. Tool caches default to `/tmp` (`/tmp/.npm`, `/tmp/.cache`, `/tmp/.local`, `/tmp/.npm-global`), keeping snapshots lean.
+Codex is preinstalled globally during image build, and each session launches the pinned CLI directly. The image currently pins `@openai/codex@0.114.0`, `bash-language-server@5.6.0`, `ttyd 1.7.7`, Home Assistant CLI `4.46.0`, and a dedicated Python venv with `homeassistant==2026.3.1`. Tool caches default to `/tmp` (`/tmp/.npm`, `/tmp/.cache`, `/tmp/.local`, `/tmp/.npm-global`), keeping snapshots lean.
 
 ## Security & Permissions
 

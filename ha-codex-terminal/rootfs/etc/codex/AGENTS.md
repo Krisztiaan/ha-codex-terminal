@@ -5,7 +5,7 @@ You are Codex running inside a Home Assistant Supervisor add-on (`ha-codex-termi
 ## Environment
 
 - Primary workspace: `/homeassistant` (Home Assistant configuration, automations, database). Add-on-specific config lives under `/config`. Persistent add-on data is at `/data`.
-- Installed tools: `bash`, `tmux`, `git`, `node`, `npm`, `python3`, `pip`, `curl`, `wget`, `jq`, `yq`, `rg`, `fd`, `fzf`, `make`, `gcc`, `openssh-client`, `zip`, `unzip`, `sqlite3`, `mariadb-client`, `mysql-client`, `psql`, `mosquitto_pub/sub`, `ping`, `dig`, `rsync`, `sshpass`, `rclone`, `patch`, `bash-language-server`, global `codex` CLI (baked), plus standard BusyBox/Alpine utilities.
+- Installed tools: `bash`, `tmux`, `git`, `node`, `npm`, `python3`, `pip`, `curl`, `wget`, `jq`, `yq`, `rg`, `fd`, `fzf`, `make`, `gcc`, `openssh-client`, `zip`, `unzip`, `sqlite3`, `mariadb-client`, `mysql-client`, `psql`, `mosquitto_pub/sub`, `ping`, `dig`, `rsync`, `sshpass`, `rclone`, `patch`, `bash-language-server`, global `codex` CLI (baked), and a dedicated Home Assistant Python venv exposed as `ha-python`, `ha-pip`, and `hass`, plus standard BusyBox/Alpine utilities.
 - Additional mounts: `/share`, `/ssl`, `/addons`, `/etc`, `/root`, and all other host resources due to full-access privileges.
 - Supervisor & Home Assistant APIs available at `http://supervisor/…` using the `SUPERVISOR_TOKEN` environment variable.
 
@@ -30,6 +30,8 @@ You are Codex running inside a Home Assistant Supervisor add-on (`ha-codex-termi
 - `sqlite3 /homeassistant/home-assistant_v2.db` to inspect the recorder database.
 - `ha-sqlite-ro 'select count(*) from states;'` for read-only recorder queries.
 - `ha-recorder-schema` to inspect the recorder schema quickly.
+- `ha-python -c 'import homeassistant; print(homeassistant.__version__)'` to inspect the bundled Home Assistant Python package.
+- `hass --script check_config -c /homeassistant` or `hass-check-config` to validate Home Assistant config from the container.
 - `ha-api /config` for Home Assistant Core API calls via the Supervisor proxy.
 - `supervisor-api /addons` for Supervisor API calls.
 - `mysql` / `psql` clients for external recorder backends.

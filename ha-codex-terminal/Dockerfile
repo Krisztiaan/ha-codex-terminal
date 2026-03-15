@@ -8,6 +8,7 @@ ARG TTYD_VERSION=1.7.7
 ARG CLI_VERSION=4.46.0
 ARG CODEX_VERSION=0.114.0
 ARG BASH_LANGUAGE_SERVER_VERSION=5.6.0
+ARG HOMEASSISTANT_PYTHON_VERSION=2026.3.1
 
 RUN apk add --no-cache \
     bash \
@@ -56,6 +57,10 @@ ENV NPM_CONFIG_CACHE=/tmp/.npm \
 RUN npm install -g @openai/codex@${CODEX_VERSION} bash-language-server@${BASH_LANGUAGE_SERVER_VERSION} \
     && npm cache clean --force || true
 
+RUN python3 -m venv /opt/ha-python \
+    && /opt/ha-python/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && /opt/ha-python/bin/pip install --no-cache-dir homeassistant==${HOMEASSISTANT_PYTHON_VERSION}
+
 RUN set -e \
     && case "$BUILD_ARCH" in \
         amd64) TTYD_ASSET="ttyd.x86_64" ;; \
@@ -77,6 +82,9 @@ RUN chmod +x \
     /usr/local/bin/ha-api \
     /usr/local/bin/ha-recorder-schema \
     /usr/local/bin/ha-sqlite-ro \
+    /usr/local/bin/ha-python \
+    /usr/local/bin/ha-pip \
+    /usr/local/bin/hass \
     /usr/local/bin/supervisor-api \
     /usr/local/bin/codex-entry \
     /usr/local/bin/codex-ingress-gate.mjs \

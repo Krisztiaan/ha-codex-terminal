@@ -29,8 +29,11 @@ jobs:
             ha-codex-terminal/rootfs/etc/profile.d/supervisor-token.sh \
             ha-codex-terminal/rootfs/etc/profile.d/tool-cache-env.sh \
             ha-codex-terminal/rootfs/usr/local/bin/ha-api \
+            ha-codex-terminal/rootfs/usr/local/bin/ha-pip \
+            ha-codex-terminal/rootfs/usr/local/bin/ha-python \
             ha-codex-terminal/rootfs/usr/local/bin/ha-recorder-schema \
             ha-codex-terminal/rootfs/usr/local/bin/ha-sqlite-ro \
+            ha-codex-terminal/rootfs/usr/local/bin/hass \
             ha-codex-terminal/rootfs/usr/local/bin/supervisor-api \
             ha-codex-terminal/rootfs/usr/local/bin/tmux-osc52
 
