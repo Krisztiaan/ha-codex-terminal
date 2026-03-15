@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+DB_PATH="${HA_SQLITE_DB_PATH:-/homeassistant/home-assistant_v2.db}"
+
+if [ ! -f "${DB_PATH}" ]; then
+    echo "Recorder database not found at ${DB_PATH}" >&2
+    exit 1
+fi
+
+exec sqlite3 -readonly "${DB_PATH}" "$@"

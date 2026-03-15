@@ -73,10 +73,15 @@ COPY rootfs/ /
 
 RUN chmod +x \
     /run.sh \
+    /usr/local/bin/ha-api \
+    /usr/local/bin/ha-recorder-schema \
+    /usr/local/bin/ha-sqlite-ro \
+    /usr/local/bin/supervisor-api \
     /usr/local/bin/codex-entry \
     /usr/local/bin/codex-ingress-gate.mjs \
     /usr/local/bin/start-codex-session \
     /usr/local/bin/tmux-osc52 \
+    /etc/profile.d/ha-cli-aliases.sh \
     /etc/profile.d/tool-cache-env.sh \
     /etc/s6-overlay/scripts/codex-init \
     /etc/s6-overlay/s6-rc.d/codex/run

@@ -1,0 +1,42 @@
+#!/bin/sh
+set -eu
+
+TOKEN="${SUPERVISOR_TOKEN:-}"
+TOKEN_FILE="/run/s6/container_environment/SUPERVISOR_TOKEN"
+BASE_URL="http://supervisor"
+
+if [ -z "${TOKEN}" ] && [ -f "${TOKEN_FILE}" ]; then
+    TOKEN="$(cat "${TOKEN_FILE}")"
+fi
+
+if [ -z "${TOKEN}" ]; then
+    echo "SUPERVISOR_TOKEN is not available." >&2
+    exit 1
+fi
+
+PATH_ARG="${1:-/}"
+case "${PATH_ARG}" in
+    -*) exec curl -fsS \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            "$@" \
+            "${BASE_URL}" ;;
+    http://*|https://*)
+        shift
+        URL="${PATH_ARG}"
+        ;;
+    /*)
+        shift
+        URL="${BASE_URL}${PATH_ARG}"
+        ;;
+    *)
+        shift
+        URL="${BASE_URL}/${PATH_ARG}"
+        ;;
+esac
+
+exec curl -fsS \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -H "Content-Type: application/json" \
+    "$@" \
+    "${URL}"

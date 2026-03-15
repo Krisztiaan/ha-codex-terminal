@@ -10,6 +10,7 @@ Launch a ttyd-powered web console inside Home Assistant that connects straight i
 - Persists Codex auth/config (`auth.json`, `config.toml`, `AGENTS.md`) in `/data`. `config.toml` and `AGENTS.md` can be managed through the add-on options UI; `auth.json` can also be uploaded safely from the Web UI.
 - Ships useful command-line tooling (`yq`, `rg`, `fd`, `fzf`, `tmux`, `git`, `python3`, etc.) for automated workflows.
 - Bundles the Home Assistant CLI (`ha`) so the agent can call supervisor/system commands directly.
+- Adds helper CLIs for Home Assistant/Supervisor APIs and read-only recorder inspection (`ha-api`, `supervisor-api`, `ha-sqlite-ro`, `ha-recorder-schema`).
 - Seeds Codex with a tuned `config.toml` (on-request approvals, `danger-full-access` sandbox, web search enabled) tailored to this add-on.
 - Keeps a dedicated tmux session running even when ingress is closed so Codex continues working between browser attaches. Shell history is stored at `/data/.codex_bash_history` (capped), and an alias (`codex`) is available for quickly launching new Codex instances in extra panes.
 - Full access to Home Assistant configuration plus mapped share, SSL, and add-ons paths.
@@ -52,6 +53,15 @@ The add-on also excludes volatile runtime artifacts from add-on backups, includi
 - Mouse selection feeds tmux’s OSC 52 clipboard integration—enter copy mode (`Ctrl+b [`), drag to select, then release to put text on your system clipboard (Cmd+C works immediately on macOS browsers).
 - Use standard tmux shortcuts (`Ctrl+b d` to detach, `Ctrl+b c` to create a window) if you want to keep additional shells running.
 - On iOS Companion, use the toolbar soft keys (`Tab`, `Tmux`, `Copy`, `Paste`, `KB`, `Scroll`). Scroll mode is remembered per-browser via localStorage.
+
+Useful helper commands:
+
+- `ha-api /config` queries the Home Assistant Core API through the Supervisor proxy.
+- `supervisor-api /addons` queries the Supervisor API directly.
+- `ha-sqlite-ro 'select count(*) from states;'` opens the recorder DB read-only.
+- `ha-recorder-schema` prints the recorder schema.
+
+These helpers are optional conveniences. The raw `ha` CLI and direct client tools remain available.
 
 Codex is preinstalled globally during image build, and each session launches the pinned CLI directly. Tool caches default to `/tmp` (`/tmp/.npm`, `/tmp/.cache`, `/tmp/.local`, `/tmp/.npm-global`), keeping snapshots lean.
 

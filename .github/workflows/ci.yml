@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse YAML
+        run: |
+          ruby -e 'require "yaml"; %w[config.yaml repository.yaml translations/en.yaml .github/workflows/ci.yml].each { |f| YAML.load_file(f) }'
+
+      - name: Check shell scripts
+        run: |
+          bash -n run.sh rootfs/usr/local/bin/codex-entry rootfs/usr/local/bin/start-codex-session rootfs/etc/s6-overlay/scripts/codex-init
+          sh -n \
+            rootfs/etc/profile.d/codex-alias.sh \
+            rootfs/etc/profile.d/ha-cli-aliases.sh \
+            rootfs/etc/profile.d/supervisor-token.sh \
+            rootfs/etc/profile.d/tool-cache-env.sh \
+            rootfs/usr/local/bin/ha-api \
+            rootfs/usr/local/bin/ha-recorder-schema \
+            rootfs/usr/local/bin/ha-sqlite-ro \
+            rootfs/usr/local/bin/supervisor-api \
+            rootfs/usr/local/bin/tmux-osc52
+
+      - name: Parse custom ttyd script
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('rootfs/usr/share/ttyd/index.html', 'utf8');
+          const start = html.lastIndexOf('<script>');
+          const end = html.lastIndexOf('</script>');
+          const js = html.slice(start + '<script>'.length, end).trim();
+          new Function(js);
+          NODE
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test build
+        uses: home-assistant/builder@master
+        with:
+          args: |
+            --target /data \
+            --all \
+            --test

@@ -17,6 +17,7 @@ If the badges do not open Home Assistant directly, add this custom repository ma
 - Opens a Home Assistant ingress terminal for Codex.
 - Keeps a long-lived `tmux` session so work survives browser reconnects.
 - Ships common CLI tooling for Home Assistant maintenance and debugging.
+- Includes helper commands for Home Assistant Core API, Supervisor API, and read-only recorder access.
 - Keeps common package-manager caches in `/tmp` and excludes volatile data from add-on backups.
 
 ## Docs

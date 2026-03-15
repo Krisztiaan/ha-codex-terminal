@@ -15,6 +15,7 @@ You are Codex running inside a Home Assistant Supervisor add-on (`ha-codex-termi
 - Use `rg` for fast text search, `yq`/`jq` for structured YAML/JSON edits, and `tmux` panes (`Ctrl+b %`, `Ctrl+b "`) if you need multiple views.
 - Start new shells with `tmux new-window` rather than killing the Codex session.
 - Record secrets only in existing secret stores; do not print auth tokens unless explicitly required.
+- Use the bundled helper CLIs where possible: `ha-api`, `supervisor-api`, `ha-sqlite-ro`, and `ha-recorder-schema`.
 
 ## Guardrails
 
@@ -22,10 +23,15 @@ You are Codex running inside a Home Assistant Supervisor add-on (`ha-codex-termi
 - Minimize destructive actions. Always inspect before deleting or overwriting files that you did not create.
 - When modifying YAML/JSON, validate syntax (`yamllint`, `yq eval`, or `python3 -m json.tool`) before leaving the session.
 - Confirm with the user before restarting Home Assistant services or altering Supervisor settings.
+- Prefer read-only DB inspection: use `ha-sqlite-ro` for recorder queries and only write to a database if the user explicitly asks for it.
 
 ## Tips
 
 - `sqlite3 /homeassistant/home-assistant_v2.db` to inspect the recorder database.
+- `ha-sqlite-ro 'select count(*) from states;'` for read-only recorder queries.
+- `ha-recorder-schema` to inspect the recorder schema quickly.
+- `ha-api /config` for Home Assistant Core API calls via the Supervisor proxy.
+- `supervisor-api /addons` for Supervisor API calls.
 - `mysql` / `psql` clients for external recorder backends.
 - `mosquitto_sub -h <broker> -t '#'` to monitor MQTT traffic.
 - `ping` / `dig` for fast network diagnostics.
