@@ -31,7 +31,7 @@ fi
 
 if ! tmux has-session -t "${SESSION}" 2>/dev/null; then
     bashio::log.info "Bootstrapping Codex tmux session in ${WORKDIR}."
-    if tmux new-session -d -s "${SESSION}" /usr/local/bin/start-codex-session "${WORKDIR}"; then
+    if tmux new-session -d -s "${SESSION}" -n "main" -c "${WORKDIR}" /usr/local/bin/start-codex-session "${WORKDIR}"; then
         tmux set-option -t "${SESSION}" remain-on-exit on
         bashio::log.info "Codex tmux session started."
     else

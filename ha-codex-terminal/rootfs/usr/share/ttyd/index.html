@@ -63,13 +63,15 @@
             return;
         }
         injectViewport();
-        injectStyle();
-        document.body.classList.add(bodyClass);
-        if (!document.getElementById(toolbarId)) {
-            buildToolbar(container);
+        if (isTouchDevice) {
+            injectStyle();
+            document.body.classList.add(bodyClass);
+            if (!document.getElementById(toolbarId)) {
+                buildToolbar(container);
+            }
+            installScrollOverlay(container);
+            installKeyHandler(window.term);
         }
-        installScrollOverlay(container);
-        installKeyHandler(window.term);
         installResizeHandlers(container);
         scheduleFit();
     }
@@ -361,7 +363,7 @@ html, body, #terminal-container, #terminal-container .terminal, #terminal-contai
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ttyd-auth-modal-title">
     <h3 id="ttyd-auth-modal-title">Update Codex auth.json</h3>
     <div style="font-size:0.9rem;opacity:0.9">
-      Paste the contents of your Codex <code>auth.json</code>. This is sent directly to the add-on over ingress and written to <code>/data/auth.json</code> without passing through the terminal session.
+      Paste the contents of your Codex <code>auth.json</code>. This is sent directly to the add-on over ingress and written to <code>/data/codex_home/auth.json</code> without passing through the terminal session.
     </div>
     <textarea spellcheck="false" placeholder="{ ...auth.json... }"></textarea>
     <div class="actions">
@@ -678,7 +680,7 @@ html, body, #terminal-container, #terminal-container .terminal, #terminal-contai
     function getEventModifiers(event) {
         return {
             ctrl: modifierState.ctrl || !!event?.ctrlKey,
-            alt: modifierState.alt || !!event?.altKey || !!event?.metaKey,
+            alt: modifierState.alt || !!event?.altKey,
             shift: modifierState.shift || !!event?.shiftKey
         };
     }
@@ -923,11 +925,11 @@ html, body, #terminal-container, #terminal-container .terminal, #terminal-contai
             if (event.key === 'Meta' || event.key === 'Alt' || event.key === 'Control' || event.key === 'Shift') {
                 return true;
             }
-            const modifiers = getEventModifiers(event);
-            const hasModifiers = modifiers.ctrl || modifiers.alt || modifiers.shift;
-            if (!hasModifiers) {
+            const hasToolbarModifiers = modifierState.ctrl || modifierState.alt || modifierState.shift;
+            if (!hasToolbarModifiers) {
                 return true;
             }
+            const modifiers = { ...modifierState };
             if (arrowCodes[event.key]) {
                 handleArrow(event.key, modifiers);
                 event.preventDefault?.();

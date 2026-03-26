@@ -10,9 +10,9 @@ const ingressPort = Number(process.env.CODEX_INGRESS_PORT || "7681");
 const ttydPort = Number(process.env.CODEX_TTYD_PORT || "7682");
 const indexHtml = process.env.CODEX_INDEX_HTML || "/usr/share/ttyd/index.html";
 
-const dataAuthPath = process.env.CODEX_AUTH_FILE || "/data/auth.json";
-const codexDir = process.env.CODEX_CONFIG_DIR || "/root/.codex";
-const codexAuthPath = path.join(codexDir, "auth.json");
+const codexHome =
+  process.env.CODEX_HOME || process.env.CODEX_CONFIG_DIR || process.env.CODEX_DIR || "/data/codex_home";
+const codexAuthPath = path.join(codexHome, "auth.json");
 
 const allowedIps = new Set(
   (process.env.CODEX_ALLOWED_INGRESS_IPS || "172.30.32.2,127.0.0.1,::1")
@@ -46,35 +46,16 @@ function deny(socketOrResponse) {
   socketOrResponse.destroy();
 }
 
-function ensureAuthSymlink() {
-  fs.mkdirSync(codexDir, { recursive: true });
-  try {
-    const stat = fs.lstatSync(codexAuthPath);
-    if (!stat.isSymbolicLink() && !stat.isFile()) {
-      fs.rmSync(codexAuthPath, { force: true, recursive: true });
-    } else {
-      fs.rmSync(codexAuthPath, { force: true });
-    }
-  } catch (err) {
-    if (err.code !== "ENOENT") {
-      throw err;
-    }
-  }
-  fs.symlinkSync(dataAuthPath, codexAuthPath);
-}
-
 function writeAuthJson(raw) {
   JSON.parse(raw);
-  fs.mkdirSync(path.dirname(dataAuthPath), { recursive: true });
-  const tmpPath = `${dataAuthPath}.tmp-${process.pid}-${Date.now()}`;
+  fs.mkdirSync(path.dirname(codexAuthPath), { recursive: true });
+  const tmpPath = `${codexAuthPath}.tmp-${process.pid}-${Date.now()}`;
   fs.writeFileSync(tmpPath, `${raw.replace(/\r\n?/g, "\n")}\n`, { mode: 0o600 });
-  fs.renameSync(tmpPath, dataAuthPath);
-  fs.chmodSync(dataAuthPath, 0o600);
-  ensureAuthSymlink();
+  fs.renameSync(tmpPath, codexAuthPath);
+  fs.chmodSync(codexAuthPath, 0o600);
 }
 
 function removeAuthJson() {
-  fs.rmSync(dataAuthPath, { force: true });
   fs.rmSync(codexAuthPath, { force: true });
 }
 

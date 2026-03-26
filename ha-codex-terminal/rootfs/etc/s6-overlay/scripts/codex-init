@@ -12,58 +12,84 @@ if [ ! -L "${CODEX_DIR}" ]; then
     ln -s "${PERSIST_CODEX_DIR}" "${CODEX_DIR}"
 fi
 
-sync_option_file() {
+# Expose a single persistent Codex home for all processes.
+printf '%s' "${PERSIST_CODEX_DIR}" > /run/s6/container_environment/CODEX_HOME
+
+write_option_file() {
     local option="$1"
-    local filename="$2"
+    local target="$2"
     local mode="$3"
     local value
 
     value="$(bashio::config "${option}")"
-    if bashio::var.has_value "${value}"; then
-        local tmp_file
-        tmp_file="$(mktemp)"
-        printf '%s' "${value}" > "${tmp_file}"
-        mv "${tmp_file}" "${DATA_DIR}/${filename}"
-        chmod "${mode}" "${DATA_DIR}/${filename}"
-        bashio::log.info "Updated ${filename} from ${option} option."
-    else
-        # Blank options should not delete persisted files. This allows
-        # Codex to keep login state across restarts/rebuilds unless the
-        # user explicitly removes the file from /data.
-        :
+    if ! bashio::var.has_value "${value}"; then
+        return 1
     fi
 
-    if [ -f "${DATA_DIR}/${filename}" ]; then
-        ln -sf "${DATA_DIR}/${filename}" "${CODEX_DIR}/${filename}"
-    else
-        rm -f "${CODEX_DIR}/${filename}"
+    local tmp_file
+    tmp_file="$(mktemp)"
+    printf '%s' "${value}" > "${tmp_file}"
+    mv "${tmp_file}" "${target}"
+    chmod "${mode}" "${target}"
+    return 0
+}
+
+seed_file_if_missing() {
+    local source="$1"
+    local target="$2"
+    local mode="$3"
+    local label="$4"
+
+    if [ -f "${target}" ] || [ -L "${target}" ]; then
+        return 0
+    fi
+
+    if [ -f "${source}" ]; then
+        cp "${source}" "${target}"
+        chmod "${mode}" "${target}"
+        bashio::log.info "Seeded ${label} into ${target}."
     fi
 }
 
-sync_option_file "auth_json" "auth.json" 600
-sync_option_file "config_toml" "config.toml" 600
-sync_option_file "agents_md" "AGENTS.md" 600
+# Migrate legacy /data/* artifacts into CODEX_HOME on first start after upgrade.
+for legacy in "auth.json" "config.toml" "AGENTS.md"; do
+    if [ -f "${DATA_DIR}/${legacy}" ] && [ ! -f "${PERSIST_CODEX_DIR}/${legacy}" ]; then
+        cp "${DATA_DIR}/${legacy}" "${PERSIST_CODEX_DIR}/${legacy}"
+        chmod 600 "${PERSIST_CODEX_DIR}/${legacy}" 2>/dev/null || true
+        bashio::log.info "Imported legacy /data/${legacy} into ${PERSIST_CODEX_DIR}/${legacy}."
+    fi
+done
+
+# Seed auth once from add-on options (and keep refreshed auth.json as canonical state).
+AUTH_SEED_OPTION="auth_json_seed"
+if ! bashio::var.has_value "$(bashio::config "${AUTH_SEED_OPTION}")"; then
+    # Back-compat for older config.yaml that used auth_json.
+    AUTH_SEED_OPTION="auth_json"
+fi
+
+if [ ! -f "${PERSIST_CODEX_DIR}/auth.json" ]; then
+    if write_option_file "${AUTH_SEED_OPTION}" "${PERSIST_CODEX_DIR}/auth.json" 600; then
+        bashio::log.info "Seeded auth.json from ${AUTH_SEED_OPTION} option."
+    fi
+else
+    if bashio::var.has_value "$(bashio::config "${AUTH_SEED_OPTION}")"; then
+        bashio::log.info "auth.json already present; ignoring ${AUTH_SEED_OPTION} seed."
+    fi
+fi
+
+# Allow config/AGENTS to be managed via add-on options; blanks never delete files.
+if write_option_file "config_toml" "${PERSIST_CODEX_DIR}/config.toml" 600; then
+    bashio::log.info "Updated config.toml from config_toml option."
+fi
+if write_option_file "agents_md" "${PERSIST_CODEX_DIR}/AGENTS.md" 600; then
+    bashio::log.info "Updated AGENTS.md from agents_md option."
+fi
 
 DEFAULT_AGENTS_TEMPLATE="/etc/codex/AGENTS.md"
 DEFAULT_CONFIG_TEMPLATE="/etc/codex/config.toml"
 
-if ! bashio::var.has_value "$(bashio::config 'agents_md')" \
-    && [ -f "${DEFAULT_AGENTS_TEMPLATE}" ] \
-    && [ ! -f "${DATA_DIR}/AGENTS.md" ]; then
-    cp "${DEFAULT_AGENTS_TEMPLATE}" "${DATA_DIR}/AGENTS.md"
-    chmod 600 "${DATA_DIR}/AGENTS.md"
-    ln -sf "${DATA_DIR}/AGENTS.md" "${CODEX_DIR}/AGENTS.md"
-    bashio::log.info "Prefilled AGENTS.md with default guidance."
-fi
-
-if ! bashio::var.has_value "$(bashio::config 'config_toml')" \
-    && [ -f "${DEFAULT_CONFIG_TEMPLATE}" ] \
-    && [ ! -f "${DATA_DIR}/config.toml" ]; then
-    cp "${DEFAULT_CONFIG_TEMPLATE}" "${DATA_DIR}/config.toml"
-    chmod 600 "${DATA_DIR}/config.toml"
-    ln -sf "${DATA_DIR}/config.toml" "${CODEX_DIR}/config.toml"
-    bashio::log.info "Prefilled config.toml with recommended defaults."
-fi
+seed_file_if_missing "${DEFAULT_AGENTS_TEMPLATE}" "${PERSIST_CODEX_DIR}/AGENTS.md" 600 "AGENTS.md"
+seed_file_if_missing "${DEFAULT_CONFIG_TEMPLATE}" "${PERSIST_CODEX_DIR}/config.toml" 600 "config.toml"
 
 # Bound persistent Codex artifacts so backups don't grow without limit.
 LOG_MAX_MB="$(bashio::config 'codex_log_max_mb' 2>/dev/null || echo '')"

@@ -21,14 +21,21 @@ export NPM_CONFIG_PREFIX="${NPM_CONFIG_PREFIX:-/tmp/.npm-global}"
 export TMPDIR="${TMPDIR:-/tmp}"
 
 DATA_DIR="/data"
+CODEX_HOME="${CODEX_HOME:-${DATA_DIR}/codex_home}"
+export CODEX_HOME
 CODEX_DIR="${HOME}/.codex"
 WORKDIR="/homeassistant"
 if [ ! -d "${WORKDIR}" ]; then
     WORKDIR="/config"
 fi
 
+mkdir -p "${CODEX_HOME}"
+if [ ! -L "${CODEX_DIR}" ]; then
+    rm -rf "${CODEX_DIR}"
+    ln -s "${CODEX_HOME}" "${CODEX_DIR}"
+fi
+
 mkdir -p \
-    "${CODEX_DIR}" \
     "${NPM_CONFIG_CACHE}" \
     "${XDG_CACHE_HOME}" \
     "${PIP_CACHE_DIR}" \
@@ -50,14 +57,6 @@ case ":$PATH:" in
     *) export PATH="${NPM_CONFIG_PREFIX}/bin:$PATH" ;;
 esac
 
-for file in "auth.json" "config.toml" "AGENTS.md"; do
-    if [ -f "${DATA_DIR}/${file}" ]; then
-        ln -sf "${DATA_DIR}/${file}" "${CODEX_DIR}/${file}"
-    else
-        rm -f "${CODEX_DIR}/${file}"
-    fi
-done
-
 SESSION="codex"
 
 TOKEN_FILE="/run/s6/container_environment/SUPERVISOR_TOKEN"
@@ -72,8 +71,13 @@ if [ -n "${SUP_TOKEN}" ]; then
 fi
 
 if ! tmux has-session -t "${SESSION}" 2>/dev/null; then
-    tmux new-session -d -s "${SESSION}" /usr/local/bin/start-codex-session "${WORKDIR}" || true
+    tmux new-session -d -s "${SESSION}" -n "main" -c "${WORKDIR}" /usr/local/bin/start-codex-session "${WORKDIR}" || true
     tmux set-option -t "${SESSION}" remain-on-exit on || true
 fi
+
+if ! tmux list-windows -t "${SESSION}" -F '#{window_name}' 2>/dev/null | grep -Fxq 'main'; then
+    tmux new-window -t "${SESSION}" -n "main" -c "${WORKDIR}" /usr/local/bin/start-codex-session "${WORKDIR}" || true
+fi
+tmux select-window -t "${SESSION}:main" 2>/dev/null || true
 
 exec tmux attach -t "${SESSION}"

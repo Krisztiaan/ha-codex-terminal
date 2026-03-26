@@ -1,7 +1,10 @@
 configuration:
   auth_json:
     name: Codex auth.json
-    description: Legacy one-time import of ~/.codex/auth.json. Prefer the Web UI Auth.json action so credentials are not stored in add-on options.
+    description: Deprecated. Use auth_json_seed (or the Web UI Auth.json action) to seed CODEX_HOME/auth.json once. Leaving this blank never deletes existing credentials.
+  auth_json_seed:
+    name: Codex auth.json seed
+    description: One-time seed value for CODEX_HOME/auth.json (only written if missing). Prefer the Web UI Auth.json action so credentials are not stored in add-on options.
   config_toml:
     name: Codex config.toml
     description: Optional settings file (~/.codex/config.toml).
