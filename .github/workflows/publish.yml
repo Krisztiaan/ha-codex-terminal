@@ -32,6 +32,4 @@ jobs:
           args: |
             --amd64 \
             --aarch64 \
-            --target /data/ha-codex-terminal \
-            --push \
-            -i ghcr.io/krisztiaan/ha-codex-terminal-{arch}
+            --target /data/ha-codex-terminal
