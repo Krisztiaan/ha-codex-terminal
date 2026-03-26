@@ -4,6 +4,7 @@ slug: ha-codex-terminal
 description: >
   ttyd + tmux workspace that launches the bundled OpenAI Codex CLI with full Home Assistant access.
 url: "https://github.com/Krisztiaan/ha-codex-terminal"
+image: "ghcr.io/krisztiaan/ha-codex-terminal-{arch}"
 arch:
   - amd64
   - aarch64
