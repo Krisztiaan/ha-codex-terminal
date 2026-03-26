@@ -24,7 +24,6 @@ jobs:
         run: |
           bash -n ha-codex-terminal/run.sh ha-codex-terminal/rootfs/usr/local/bin/codex-entry ha-codex-terminal/rootfs/usr/local/bin/start-codex-session ha-codex-terminal/rootfs/etc/s6-overlay/scripts/codex-init
           sh -n \
-            ha-codex-terminal/rootfs/etc/profile.d/codex-alias.sh \
             ha-codex-terminal/rootfs/etc/profile.d/ha-cli-aliases.sh \
             ha-codex-terminal/rootfs/etc/profile.d/supervisor-token.sh \
             ha-codex-terminal/rootfs/etc/profile.d/tool-cache-env.sh \
